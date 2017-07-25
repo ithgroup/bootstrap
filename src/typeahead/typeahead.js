@@ -119,7 +119,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position'])
           id: popupId,
           matches: 'matches',
           active: 'activeIdx',
-          select: 'select(activeIdx)',
+          select: 'select(activeIdx, evt)',
           'move-in-progress': 'moveInProgress',
           query: 'query',
           position: 'position'
@@ -161,7 +161,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position'])
           return false;
         };
 
-        var getMatchesAsync = function(inputValue) {
+        var getMatchesAsync = function(inputValue, evt) {
           var locals = {$viewValue: inputValue};
           isLoadingSetter(originalScope, true);
           isNoResultsSetter(originalScope, false);
@@ -196,7 +196,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position'])
 
                 //Select the single remaining option if user input matches
                 if (selectOnExact && scope.matches.length === 1 && inputIsExactMatch(inputValue, 0)) {
-                  scope.select(0);
+                  scope.select(0, evt);
                 }
               } else {
                 resetMatches();
@@ -333,7 +333,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position'])
           }
         });
 
-        scope.select = function(activeIdx) {
+        scope.select = function(activeIdx, evt) {
           //called from within the $digest() cycle
           var locals = {};
           var model, item;
@@ -348,7 +348,8 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position'])
           onSelectCallback(originalScope, {
             $item: item,
             $model: model,
-            $label: parserResult.viewMapper(originalScope, locals)
+            $label: parserResult.viewMapper(originalScope, locals),
+            $event: evt
           });
 
           resetMatches();
@@ -386,7 +387,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position'])
 
           } else if (evt.which === 13 || evt.which === 9) {
             scope.$apply(function () {
-              scope.select(scope.activeIdx);
+              scope.select(scope.activeIdx, evt);
             });
 
           } else if (evt.which === 27) {
@@ -397,11 +398,11 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position'])
           }
         });
 
-        element.bind('blur', function() {
+        element.bind('blur', function(evt) {
           if (isSelectOnBlur && scope.matches.length && scope.activeIdx !== -1 && !selected) {
             selected = true;
             scope.$apply(function() {
-              scope.select(scope.activeIdx);
+              scope.select(scope.activeIdx, evt);
             });
           }
           hasFocus = false;
@@ -473,8 +474,8 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position'])
           scope.active = matchIdx;
         };
 
-        scope.selectMatch = function(activeIdx) {
-          scope.select({activeIdx:activeIdx});
+        scope.selectMatch = function(activeIdx, evt) {
+          scope.select({activeIdx:activeIdx, evt: evt});
         };
       }
     };
